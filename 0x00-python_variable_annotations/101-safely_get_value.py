@@ -6,11 +6,12 @@ from typing import TypeVar, Mapping, Optional, Any, Union
 
 
 T = TypeVar('T')
-U = Union[T, None]
-V = Union[Any, None]
+U = Optional[T]
+# U = Union[T, None]
+# V = Union[Any, None]
 
 
-def safely_get_value(dct: Mapping, key: Any, default: U = None) -> V:
+def safely_get_value(dct: Mapping, key: Any, default: U = None) -> U:
     """
     Parameters
     ----------
