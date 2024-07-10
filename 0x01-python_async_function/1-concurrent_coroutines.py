@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """
 The module runs multiple `wait_random` coroutines concurrently and gather their
 results in a list.
