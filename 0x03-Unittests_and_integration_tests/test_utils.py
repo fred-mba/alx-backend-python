@@ -3,6 +3,7 @@
 Parameterized unittest module
 """
 import unittest
+from unittest.mock import patch, Mock
 from parameterized import parameterized
 from typing import Dict, Tuple, Union
 
@@ -53,3 +54,24 @@ class TestAccessNestedMap(unittest.TestCase):
         """
         with self.assertRaises(exception):
             access_nested_map(nested_map, path)
+
+
+class TestGetJson(unittest.TestCase):
+    """
+    TestGetJson class to mock the HTTP calls
+    """
+    @parameterized.expand([
+        ("http://example.com", {"payload": True}),
+        ("http://holberton.io", {"payload": False})
+
+    ])
+    def test_get_json(self, test_url: str, test_payload: Dict) -> None:
+        """
+        Creates a mock_reponse object with json() return value
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = test_payload
+
+        with patch('requests.get', return_value=mock_response) as mock_req:
+            self.assertEqual(get_json(test_url), test_payload)
+            mock_req.assert_called_once_with(test_url)
