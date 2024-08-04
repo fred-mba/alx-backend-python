@@ -5,8 +5,9 @@ Parameterize and patch as decorators module
 import unittest
 from unittest.mock import Mock, MagicMock, patch, PropertyMock
 from parameterized import parameterized, parameterized_class
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 from client import GithubOrgClient
+from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -118,3 +119,68 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         result = GithubOrgClient.has_license(repo, license_key)
         self.assertEqual(result, expected)
+
+
+@parameterized_class([
+    {
+        'org_payload': TEST_PAYLOAD[0][0],
+        'repos_payload': TEST_PAYLOAD[0][1],
+        'expected_repos': TEST_PAYLOAD[0][2],
+        'apache2_repos': TEST_PAYLOAD[0][3]
+    }
+])
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """
+    An implementation of setUpClass and tearDownClass which are part of
+    the unittest.TestCase API.
+    """
+    @classmethod
+    def setUpClass(cls) -> None:
+        """setUpClass for patching requests.get to return fixture data.
+        """
+        cls.get_patcher = patch('requests.get')
+        cls.mock_get = cls.get_patcher.start()
+
+        def get_json_side_effect(url: str) -> Any:
+            """Defines the side_effect for the mock
+            """
+            if url == cls.org_payload["repos_url"]:
+                return cls.repos_payload
+            elif url == f"https://api.github.com/orgs/\
+                    {cls.org_payload['login']}":
+                return cls.org_payload
+            return {}
+
+        cls.mock_get.side_effect = lambda url, *args, **kwargs: MockResponse(
+            get_json_side_effect(url)
+        )
+
+
+@classmethod
+def tearDownClass(cls) -> None:
+    """Stop patcher
+    """
+    cls.get_patcher.stop()
+
+
+def test_public_repos(cls) -> None:
+    """Test the GithubOrgClient.public_repos method.
+    """
+    self.assertEqual(
+        GithubOrgClient(self.org_payload['login']).public_repos(),
+        self.expected_repos
+    )
+
+
+class MockResponse:
+    """Mocks the json response
+    """
+    def __init__(self, json_data: Any) -> None:
+        """Initialize json_data
+        """
+        self.json_data = json_data
+
+    def json(self) -> Any:
+        """Return json data
+        """
+        return self.json_data
