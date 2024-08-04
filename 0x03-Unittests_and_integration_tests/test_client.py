@@ -172,6 +172,16 @@ def test_public_repos(cls) -> None:
     )
 
 
+def test_public_repos_with_license(self) -> None:
+    """Test the public_repos with the argument license="apache-2.0" and
+    make sure the result matches the expected value from the fixtures.
+    """
+    self.assertEqual(
+        GithubOrgClient('google').poublic_repos(license='apache-2.0'),
+        self.apache2_repos
+    )
+
+
 class MockResponse:
     """Mocks the json response
     """
